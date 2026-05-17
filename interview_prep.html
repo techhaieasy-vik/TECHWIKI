@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ultimate Interview Hub | Java · Cloud · System Design</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at 10% 20%, rgba(241, 245, 249, 1) 0%, rgba(226, 232, 240, 1) 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      line-height: 1.55;
+      color: #0f172a;
+      padding-top: 70px; /* space for fixed header */
+    }
+
+    /* --- glassmorphism header --- */
+    .glass-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 35, 50, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 1000;
+      padding: 0.8rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, #b9e6f0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    /* desktop nav */
+    .desktop-nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .desktop-nav a {
+      color: #e2f0f7;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+    }
+
+    .desktop-nav a:hover {
+      background: #1e6f8c;
+      color: white;
+    }
+
+    /* hamburger (mobile only) */
+    .hamburger {
+      display: none;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      font-size: 1.8rem;
+      cursor: pointer;
+      width: 44px;
+      height: 44px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* mobile slide-out menu */
+    .mobile-menu {
+      position: fixed;
+      top: 70px;
+      left: -280px;
+      width: 280px;
+      height: calc(100% - 70px);
+      background: rgba(10, 30, 40, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 1001;
+      transition: left 0.3s ease;
+      padding: 1.5rem;
+      overflow-y: auto;
+      border-radius: 0 1.5rem 1.5rem 0;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+    }
+
+    .mobile-menu.open {
+      left: 0;
+    }
+
+    .mobile-menu a {
+      display: block;
+      color: #e2f0f7;
+      text-decoration: none;
+      padding: 0.8rem 0;
+      font-size: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .overlay {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    /* main container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    /* topic cards */
+    .topic-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    details {
+      width: 100%;
+    }
+
+    summary {
+      background: rgba(248, 250, 252, 0.9);
+      padding: 1rem 1.5rem;
+      font-weight: 700;
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      color: #135b74;
+      user-select: none;
+      list-style: none;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: "▶";
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    .topic-content {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+    }
+
+    .level-filters {
+      display: flex;
+      gap: 12px;
+      margin: 1rem 0 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .level-btn {
+      background: #eef2ff;
+      border: none;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: #1e293b;
+      transition: all 0.2s;
+    }
+
+    .level-btn.active {
+      background: #0f3b4f;
+      color: white;
+    }
+
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .qa-card {
+      border-left: 4px solid #3b82f6;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 0.2rem 0 0.2rem 1rem;
+      border-radius: 0 1rem 1rem 0;
+    }
+
+    .qa-question {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.6rem;
+    }
+
+    .level-badge {
+      background: #e0f2fe;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      color: #0369a1;
+    }
+
+    .level-badge.advanced {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .level-badge.scenario {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .qa-answer {
+      color: #1e293b;
+    }
+
+    .explanation, .rationale {
+      background: #fefce8;
+      border-left: 4px solid #eab308;
+      padding: 0.5rem 0.8rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      border-radius: 0.75rem;
+    }
+
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 0.8rem;
+      border-radius: 1rem;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      margin: 0.8rem 0;
+      font-family: monospace;
+    }
+
+    code {
+      background: #eef2ff;
+      padding: 0.2rem 0.4rem;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #c2410c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8rem 0;
+      background: white;
+      font-size: 0.85rem;
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+    }
+
+    .diagram {
+      background: #f8fafc;
+      padding: 0.8rem;
+      border-radius: 1rem;
+      font-family: monospace;
+      white-space: pre;
+      overflow-x: auto;
+      font-size: 0.7rem;
+      margin: 0.8rem 0;
+      border: 1px solid #cbd5e1;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #475569;
+      padding: 1rem;
+    }
+
+    /* responsive */
+    @media (max-width: 780px) {
+      .desktop-nav {
+        display: none;
+      }
+      .hamburger {
+        display: block;
+      }
+      .glass-header {
+        padding: 0.5rem 1rem;
+      }
+      .logo h1 {
+        font-size: 1.1rem;
+      }
+      summary {
+        font-size: 1.1rem;
+        padding: 0.8rem 1rem;
+      }
+      .topic-content {
+        padding: 0 1rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="glass-header">
+  <div class="logo"><h1>📘 Interview Hub · Java & Cloud</h1></div>
+  <div class="desktop-nav" id="desktopNav">
+    <a href="#aks">AKS</a><a href="#config">ConfigMap</a><a href="#istio">Istio</a><a href="#azsql">Azure SQL</a>
+    <a href="#jib">Jib</a><a href="#bookmyshow">BookMyShow</a><a href="#patterns">Patterns</a><a href="#memory">Memory/GC</a>
+    <a href="#jdbc">JDBC/CAP</a><a href="#kafka">Kafka</a><a href="#parking">Parking</a><a href="#spring">Spring Boot</a>
+    <a href="#sysdesign">Sys Design</a><a href="#integrated">Integrated</a>
+  </div>
+  <button class="hamburger" id="hamburgerBtn">☰</button>
+</div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#aks">AKS</a><a href="#config">ConfigMap</a><a href="#istio">Istio</a><a href="#azsql">Azure SQL</a>
+  <a href="#jib">Jib</a><a href="#bookmyshow">BookMyShow</a><a href="#patterns">Patterns</a><a href="#memory">Memory/GC</a>
+  <a href="#jdbc">JDBC/CAP</a><a href="#kafka">Kafka</a><a href="#parking">Parking</a><a href="#spring">Spring Boot</a>
+  <a href="#sysdesign">Sys Design</a><a href="#integrated">Integrated</a>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<div class="container">
+  <!-- ================= AKS ================= -->
+  <div class="topic-card" id="aks">
+    <details open>
+      <summary>☸️ Azure Kubernetes Service (AKS)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> What is the difference between system and user node pools in AKS?</div><div class="qa-answer">System node pools host critical system pods (CoreDNS, metrics-server, tunnel-front). User node pools host application workloads. System pools should have at least 2-3 nodes for high availability and cannot be scaled down to zero. User pools allow independent scaling and different VM SKUs for cost optimization.</div><div class="explanation">Separating concerns avoids noisy neighbors impacting control plane. For critical production, system pool uses Standard_B4ms while user pool may use spot instances.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Advanced</span> Scenario: Your AKS cluster experiences sudden spikes in API server latency. How would you diagnose and mitigate?</div><div class="qa-answer">Check API server load: kubectl top nodes, review API server metrics via Azure Monitor (API server latency, request rate). Causes: too many watchers, large etcd DB size. Mitigation: enable API server VNet integration, upgrade cluster tier, reduce informers, namespace quotas, --watch-cache tuning. Also review audit logs.</div><div class="explanation">Senior approach: use Azure Advisor, analyze etcd metrics, use namespace segmentation for high cardinality objects.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Scenario</span> Deploy a stateful Spring Boot app with persistent storage pinned to a specific Azure zone.</div><div class="qa-answer">Use StatefulSet with Azure Disk – topology-aware scheduling via WaitForFirstConsumer. Define StorageClass with allowedTopologies to pin zones. PodAntiAffinity + volumeClaimTemplate. For max performance: Azure NetApp Files.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= ConfigMap & Secret ================= -->
+  <div class="topic-card" id="config">
+    <details>
+      <summary>🗂️ ConfigMap & Secret (K8s)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> ConfigMap vs Secret differences + Spring Boot injection.</div><div class="qa-answer">ConfigMap: plain text; Secret: base64 encoded. Injected as env vars or volumes. Spring Boot: @ConfigurationProperties / @Value, or spring.config.import=kubernetes:. Best practice: Azure Key Vault + Secrets Store CSI driver.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Advanced</span> ConfigMap updated but pod still uses old values – dynamic reload without restart.</div><div class="qa-answer">Use Stakater Reloader or rolling restart via hash annotation. Spring Cloud Kubernetes Config Watcher + @RefreshScope. Immutable releases: change ConfigMap → new deployment revision (hash) → rolling update.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Scenario</span> Azure SQL credentials rotate every 30 days without pod restart.</div><div class="qa-answer">Azure Key Vault Provider with rotationPollInterval. CSI driver syncs secret periodically. Or Azure AD Workload Identity + AAD authentication – eliminates rotation.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Istio ================= -->
+  <div class="topic-card" id="istio">
+    <details>
+      <summary>🌊 Istio Service Mesh</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> How does Istio enable mTLS between services?</div><div class="qa-answer">Istio injects Envoy sidecar proxies that establish mutual TLS using SPIFFE certificates. PeerAuthentication + DestinationRule enforce STRICT mTLS. Transparent to Spring Boot.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Advanced</span> Canary release: shift 10% traffic to v2 using Istio VirtualService.</div><div class="qa-answer">DestinationRule with subsets v1, v2. VirtualService: 90% v1, 10% v2 weight. Monitor metrics with Kiali/Prometheus, gradually increase weight. Traffic mirroring for testing.</div><pre>route: - destination: host: order-service subset: v1 weight: 90 - destination: host: order-service subset: v2 weight: 10</pre></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Scenario</span> Booking service random 5xx errors due to downstream timeouts – apply Istio resilience.</div><div class="qa-answer">Retry and timeout in VirtualService: attempts:3 perTryTimeout:2s. Circuit breaker via OutlierDetection in DestinationRule. Combine with Spring Resilience4j.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Azure SQL ================= -->
+  <div class="topic-card" id="azsql">
+    <details>
+      <summary>🐘 Azure SQL Database</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> Secure connection from AKS to Azure SQL without hardcoded credentials.</div><div class="qa-answer">Azure AD Workload Identity + JDBC URL with Authentication=ActiveDirectoryManagedIdentity. Grant managed identity db_datareader, db_datawriter.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Advanced</span> Connection timeouts under peak load (HikariCP) – diagnose & optimize.</div><div class="qa-answer">Check HikariCP maxPoolSize, connectionTimeout. Monitor DTU/vCore limits. Use connectTimeout=60, socketTimeout=60. Enable accelerated networking. Spring Retry for transient faults. Enable leakDetectionThreshold.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Scenario</span> Zero-downtime schema migrations with Flyway/Liquibase on Azure SQL.</div><div class="qa-answer">Dedicated migration job (initContainer/K8s Job). Expand/contract pattern: add column, dual write, backfill, drop old column. Avoid long-locking ALTER TABLE.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Jib ================= -->
+  <div class="topic-card" id="jib">
+    <details>
+      <summary>🐳 Jib (Container Tools)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> Advantages of Jib over Dockerfile in CI/CD.</div><div class="qa-answer">No Docker daemon, automatic layer separation (deps/resources/classes), faster push/pull, reproducible builds, distroless base. Great for Azure DevOps.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Advanced</span> Jib + GraalVM native image for ultra-fast startup.</div><div class="qa-answer">Jib focuses on JVM images. For native, use Spring Boot bootBuildImage (Paketo) or native-maven-plugin. Combine with AOT hints.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Scenario</span> Slow CI builds due to dependency downloads – optimize with Jib.</div><div class="qa-answer">Jib caches dependencies. In GitHub Actions, cache .m2/repository and Jib cache folder. jib:build pushes only changed layers to ACR, reducing CI time by 40-60%.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= BookMyShow ================= -->
+  <div class="topic-card" id="bookmyshow">
+    <details>
+      <summary>🎟️ BookMyShow – Seat Booking Concurrency</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">HLD</span> Core flow and architecture.</div><div class="qa-answer">User → hold seats (Redis SET NX TTL 10 min) → payment → confirm. PostgreSQL final bookings. Redis structures: seat:hold:show:{showId}:{seatId}, user:holds:{userId}.</div><div class="diagram">[Client] → API Gateway → Booking Service → Redis (holds) + PostgreSQL (final)</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">LLD Java</span> Atomic seat hold with rollback + confirm optimistic locking.</div><pre>Boolean success = redis.opsForValue().setIfAbsent(key, userId, Duration.ofMinutes(10));
+int updated = jdbcTemplate.update("UPDATE show_seat SET status='BOOKED' WHERE show_id=? AND seat_id=? AND status='AVAILABLE'", ...);
+if (updated == 0) throw new SeatAlreadyBookedException();</pre></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Idempotency for confirm (prevent double payment).</span></div><div class="qa-answer">Idempotency key from client: Redis setIfAbsent with TTL. If already completed, return cached response.</div><pre>String cacheKey = "idempotent:confirm:" + idempotencyKey;
+Boolean acquired = redis.opsForValue().setIfAbsent(cacheKey, "processing", Duration.ofMinutes(5));</pre></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Design Patterns ================= -->
+  <div class="topic-card" id="patterns">
+    <details>
+      <summary>🧠 Java Design Patterns</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Creational</span> Singleton, Factory, Builder, Prototype.</div><div class="qa-answer"><strong>Singleton:</strong> one instance (Runtime). <strong>Factory Method:</strong> subclass decides. <strong>Builder:</strong> step-by-step (StringBuilder). <strong>Prototype:</strong> clone.</div></div>
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Structural</span> Adapter, Decorator, Proxy.</div><div class="qa-answer"><strong>Adapter:</strong> convert interface; <strong>Decorator:</strong> add behaviour; <strong>Proxy:</strong> control access.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Key Comparisons</span> Adapter vs Proxy vs Decorator, Strategy vs State.</div><div class="qa-answer">Adapter changes interface; Proxy same interface (access control); Decorator same interface (adds behaviour). Strategy interchangeable algorithms (client sets); State changes with internal context.</div><table>
+            <tr><th>Pattern</th><th>Intent</th></tr>
+            <tr><td>Adapter</td><td>Convert incompatible interface</td></tr>
+            <tr><td>Proxy</td><td>Control access / lazy loading</td></tr>
+            <tr><td>Decorator</td><td>Add responsibility without subclass</td></tr>
+          </table></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Advanced</span> Refactor massive if-else pricing logic.</div><div class="qa-answer">Strategy + Factory + Chain of Responsibility. Each pricing algorithm encapsulated, factory returns correct strategy per region/tier.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Memory & GC ================= -->
+  <div class="topic-card" id="memory">
+    <details>
+      <summary>🗂️ Java Memory & Garbage Collection (JDK7→17+)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> JVM memory areas & PermGen vs Metaspace.</div><div class="qa-answer">Heap (young+old), stack, Metaspace (native memory since JDK8). PermGen fixed heap → OOM; Metaspace auto-grows.</div><div class="diagram">JDK7: Young Gen → Old Gen → PermGen (fixed). JDK8+: Young + Old + Metaspace (native).</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">G1 GC layout, remember set, pause time goals.</span></div><div class="qa-answer">G1 divides heap into regions (1-32 MB). Remembered Sets track cross-region references. SATB algorithm, pause prediction model, mixed GC. Default from JDK9+.</div><pre>-Xlog:gc*:file=gc.log -XX:+HeapDumpOnOutOfMemoryError</pre></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">ThreadLocal memory leak in web apps.</span></div><div class="qa-answer">Always clean ThreadLocal with remove() in try-finally. Heap dump shows ThreadLocalMap references.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= JDBC / CAP ================= -->
+  <div class="topic-card" id="jdbc">
+    <details>
+      <summary>⚡ JDBC Transactions · ACID · CAP Theorem</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> ACID properties & JDBC isolation levels.</div><div class="qa-answer">Atomicity, Consistency, Isolation, Durability. Isolation: READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE.</div><tr>
+            <tr><th>Level</th><th>Dirty Read</th><th>Non-Repeatable Read</th><th>Phantom</th></tr>
+            <tr><td>READ_COMMITTED</td><td>❌</td><td>✅</td><td>✅</td></tr>
+            <tr><td>REPEATABLE_READ</td><td>❌</td><td>❌</td><td>MySQL gap locks</td></tr>
+          </table></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">CAP Theorem & distributed transactions.</span></div><div class="qa-answer">Consistency, Availability, Partition tolerance. CP (HBase, ZK) vs AP (Cassandra). Use SAGA pattern instead of XA in microservices.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Lost update problem – fix with optimistic locking.</span></div><div class="qa-answer">Use @Version in JPA. Second update fails with OptimisticLockException, client retries. Pessimistic: SELECT FOR UPDATE.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Kafka ================= -->
+  <div class="topic-card" id="kafka">
+    <details>
+      <summary>📡 Apache Kafka</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> Partitions, offsets, consumer groups, at-least-once.</div><div class="qa-answer">Partitions provide ordering, unique offsets. Consumer groups allow parallelism. At-least-once: commit after processing – duplicates possible. Exactly-once: idempotent producer + transactions + read_committed.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">KRaft – ZooKeeper removal.</span></div><div class="qa-answer">KRaft uses Raft consensus for metadata, eliminates external ZK, scales to millions of partitions. Migration: upgrade to 3.5+, metadata migrate, set process.roles=broker,controller.</div><pre>kafka-storage.sh format --cluster-id &lt;id&gt; --standby</pre></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Consumer group rebalancing frequently – fix.</span></div><div class="qa-answer">Long processing > max.poll.interval.ms. Increase interval, reduce max.poll.records, use CooperativeStickyAssignor, monitor GC pauses.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Parking System ================= -->
+  <div class="topic-card" id="parking">
+    <details>
+      <summary>🅿️ Parking System Design (Single/Multi-level)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">HLD</span> Multi-level parking recommendation – nearest spot to entrance.</div><div class="qa-answer">Redis Sorted Sets per level: key `parking:free:level:{levelId}:CAR`, score = distance_to_entrance. ZRANGE 0 0 returns closest. Weighted: distance*0.6 + level penalty + elevator bonus.</div><pre>ZRANGE parking:free:level:1:CAR 0 0</pre></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Atomic allocation with Lua script to prevent double booking.</span></div><pre>if redis.call('hexists', KEYS[1], ARGV[1]) == 0 then
+   redis.call('hset', KEYS[1], ARGV[1], 'OCCUPIED')
+   redis.call('zrem', KEYS[2], ARGV[1])
+   return 1
+else return 0 end</pre><div class="rationale">Fallback DB row lock (SELECT FOR UPDATE SKIP LOCKED).</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Spring Boot ================= -->
+  <div class="topic-card" id="spring">
+    <details>
+      <summary>🍃 Spring Boot Deep Dive (2→3→4, Rate Limiting)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Basic</span> Auto-configuration & @Conditional mechanisms.</div><div class="qa-answer">@ConditionalOnClass, @ConditionalOnMissingBean, @ConditionalOnProperty. Starter JARs contain AutoConfiguration.imports.</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">Migration Boot 2.x → 3.x → 4.x.</span></div><div class="qa-answer">Boot 3: Java 17, Jakarta EE (javax→jakarta), Hibernate 6. Boot 4 expected Java 21+, virtual threads, enhanced AOT. Use OpenRewrite for migration.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Distributed rate limiting (Bucket4j + Redis).</span></div><div class="qa-answer">Filter using Bucket4j with Redis ProxyManager. Token bucket 1000 req/min. HTTP 429 on throttle.</div><pre>boolean consumed = bucket.tryConsume(1);
+if (!consumed) response.setStatus(429);</pre></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= System Design ================= -->
+  <div class="topic-card" id="sysdesign">
+    <details>
+      <summary>🏛️ System Design (HLD+LLD, URL Shortener, Pipeline)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="basic"><div class="qa-question"><span class="level-badge">Approach</span> HLD vs LLD – step-by-step checklist.</div><div class="qa-answer">1. Clarify requirements 2. Estimate scale 3. APIs 4. Data models 5. Component diagram 6. Deep dive 7. Trade-offs 8. Failure handling.</div><div class="diagram">[Client] → LB → API Gateway → Services → DB/Cache</div></div>
+          <div class="qa-card" data-level="advanced"><div class="qa-question"><span class="level-badge advanced">URL Shortener (TinyURL) – complete HLD+LLD.</span></div><div class="qa-answer">Base62 encoding of (shardId << 48) | seq. PostgreSQL unique constraint. Redis cache, cache stampede protection. Async Kafka + ClickHouse.</div><pre>if (redis.setIfAbsent(lockKey, "1", Duration.ofSeconds(2))) {
+    // load from DB and populate cache
+}</pre></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">End‑to‑end pipeline: Jib → ACR → AKS + Istio + Azure SQL + Workload Identity.</span></div><div class="qa-answer">Jib builds to ACR; AKS with Workload Identity; Azure SQL managed identity; Istio VirtualService canary; ArgoCD progressive delivery; monitoring; auto‑rollback.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ================= Integrated Scenarios ================= -->
+  <div class="topic-card" id="integrated">
+    <details>
+      <summary>⚡ Integrated Scenarios (Resilience, Tracing)</summary>
+      <div class="topic-content">
+        <div class="level-filters"><button class="level-btn active" data-level="all">All</button><button class="level-btn" data-level="basic">Basic</button><button class="level-btn" data-level="advanced">Advanced</button><button class="level-btn" data-level="scenario">Scenario</button></div>
+        <div class="qa-list">
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">AKS node down + Azure SQL failover – minimize downtime.</span></div><div class="qa-answer">Multiple node pools with availability zones. PodDisruptionBudget, topologySpreadConstraints. Azure SQL zone-redundant. HikariCP validation, readiness probes, Istio outlier detection, Spring Retry.</div></div>
+          <div class="qa-card" data-level="scenario"><div class="qa-question"><span class="level-badge scenario">Trace slow endpoint through Spring Boot → Istio → Azure SQL.</span></div><div class="qa-answer">Enable Istio tracing + Micrometer Tracing (Brave). Propagate traceId headers. Use Jaeger/Zipkin. Azure SQL Query Store correlated with traceId.</div></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <footer>✅ All questions from your original 13 HTML files are included. Use the filters inside each topic to show only Basic / Advanced / Scenario questions.</footer>
+</div>
+
+<script>
+  // Level filter logic inside each topic
+  document.querySelectorAll('.topic-content').forEach(section => {
+    const btns = section.querySelectorAll('.level-btn');
+    const cards = section.querySelectorAll('.qa-card');
+    function filter(level) {
+      cards.forEach(card => {
+        if (level === 'all' || card.getAttribute('data-level') === level) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      btns.forEach(btn => {
+        if (btn.getAttribute('data-level') === level) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+    btns.forEach(btn => btn.addEventListener('click', () => filter(btn.getAttribute('data-level'))));
+    filter('all');
+  });
+
+  // Mobile hamburger menu
+  const hamburger = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const overlay = document.getElementById('overlay');
+  function closeMenu() {
+    mobileMenu.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+  function openMenu() {
+    mobileMenu.classList.add('open');
+    overlay.classList.add('active');
+  }
+  hamburger.addEventListener('click', () => {
+    if (mobileMenu.classList.contains('open')) closeMenu();
+    else openMenu();
+  });
+  overlay.addEventListener('click', closeMenu);
+  // Close menu when a link is clicked
+  document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+</script>
+</body>
+</html>
